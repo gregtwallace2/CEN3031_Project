@@ -5,6 +5,7 @@ import Paper from '@mui/material/Paper';
 import Header from './components/Header';
 import LoanDetailsForm from './components/LoanDetailsForm';
 import ResultsSummary from './components/ResultsSummary';
+import { calculateStandardMonthlyPayment } from './utils/loanCalculations';
 
 interface LoanResults {
   monthlyPayment: number;
@@ -13,52 +14,45 @@ interface LoanResults {
   totalCost: number;
 }
 
-function calculateLoan(
-  principal: number,
-  annualRate: number,
-  termMonths: number,
-): LoanResults {
-  if (annualRate === 0) {
-    const monthlyPayment = principal / termMonths;
-    return {
-      monthlyPayment,
-      totalPaid: principal,
-      totalInterest: 0,
-      totalCost: principal,
-    };
-  }
 
-  const monthlyRate = annualRate / 100 / 12;
-  const monthlyPayment =
-    (principal * (monthlyRate * Math.pow(1 + monthlyRate, termMonths))) /
-    (Math.pow(1 + monthlyRate, termMonths) - 1);
-
-  const totalCost = monthlyPayment * termMonths;
-  const totalInterest = totalCost - principal;
-
-  return {
-    monthlyPayment,
-    totalPaid: principal,
-    totalInterest,
-    totalCost,
-  };
-}
 
 function App() {
-  const [results, setResults] = useState<LoanResults>(() =>
-    calculateLoan(10000, 5, 10 * 12),
-  );
+  const defaultMonthly = calculateStandardMonthlyPayment(10000, 5, 10);
+
+  const [results, setResults] = useState<LoanResults>({
+    monthlyPayment: defaultMonthly,
+    totalPaid: 10000,
+    totalInterest: defaultMonthly * 120 - 10000,
+    totalCost: defaultMonthly * 120,
+  });
 
   const handleCalculate = (data: {
     principal: number;
     interestRate: number;
     loanTerm: number;
     termUnit: 'months' | 'years';
+    repaymentPlan: 'standard' | 'idr';
+    income?: number;
+    familySize?: number;
   }) => {
     const termMonths =
       data.termUnit === 'years' ? data.loanTerm * 12 : data.loanTerm;
-    setResults(calculateLoan(data.principal, data.interestRate, termMonths));
-  };
+    const monthlyPayment = calculateStandardMonthlyPayment(
+    data.principal,
+    data.interestRate,
+    termMonths / 12
+  );
+
+  const totalCost = monthlyPayment * termMonths;
+  const totalInterest = totalCost - data.principal;
+
+  setResults({
+    monthlyPayment,
+    totalPaid: data.principal,
+    totalInterest,
+    totalCost,
+  });
+};
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#F5F7FA' }}>
