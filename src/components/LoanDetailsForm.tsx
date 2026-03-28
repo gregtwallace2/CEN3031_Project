@@ -14,6 +14,9 @@ interface LoanDetailsFormProps {
     interestRate: number;
     loanTerm: number;
     termUnit: 'months' | 'years';
+    repaymentPlan: 'standard' | 'ibr' | 'icr' | 'paye';
+    income?: number;
+    familySize?: number;
   }) => void;
 }
 
@@ -22,6 +25,9 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
   const [interestRate, setInterestRate] = useState('5');
   const [loanTerm, setLoanTerm] = useState('10');
   const [termUnit, setTermUnit] = useState<'months' | 'years'>('years');
+  const [repaymentPlan, setRepaymentPlan] = useState<'standard' | 'ibr' | 'icr' | 'paye'>('standard');
+  const [income, setIncome] = useState('');
+  const [familySize, setFamilySize] = useState('');
 
   const handleTermUnitChange = (
     _: React.MouseEvent<HTMLElement>,
@@ -31,11 +37,21 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
       setTermUnit(newUnit);
     }
   };
+  const handleRepaymentPlanChange = (
+  _: React.MouseEvent<HTMLElement>,
+  newPlan: 'standard' | 'ibr' | 'icr' | 'paye' | null,
+) => {
+  if (newPlan !== null) {
+    setRepaymentPlan(newPlan);
+  }
+};
 
   const handleCalculate = () => {
     const principalNum = parseFloat(principal.replace(/,/g, ''));
     const rateNum = parseFloat(interestRate);
     const termNum = parseFloat(loanTerm);
+    const incomeNum = parseFloat(income.replace(/,/g, ''));
+    const familySizeNum = parseFloat(familySize);
 
     if (!isNaN(principalNum) && !isNaN(rateNum) && !isNaN(termNum)) {
       onCalculate({
@@ -43,6 +59,13 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
         interestRate: rateNum,
         loanTerm: termNum,
         termUnit,
+        repaymentPlan,
+        income:
+          repaymentPlan !== 'standard' && !isNaN(incomeNum) ? incomeNum : undefined,
+        familySize:
+          repaymentPlan !== 'standard' && !isNaN(familySizeNum)
+            ? familySizeNum
+            : undefined,
       });
     }
   };
@@ -163,6 +186,52 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
         </ToggleButtonGroup>
       </Box>
 
+      
+      {/* Repayment Plan */}
+      <Box sx={{ mb: 3 }}>
+        <Typography
+          variant="body2"
+          sx={{ mb: 0.75, fontWeight: 600, color: 'text.primary' }}
+        >
+          Repayment plan
+        </Typography>
+        <ToggleButtonGroup
+          value={repaymentPlan}
+          exclusive
+          onChange={handleRepaymentPlanChange}
+          size="small"
+          sx={{
+            '& .MuiToggleButton-root': {
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: '0.85rem',
+              px: 2.5,
+              py: 0.75,
+              borderRadius: '20px !important',
+              border: '1.5px solid #D0D5DD !important',
+              color: '#5A5A7A',
+              '&.Mui-selected': {
+                backgroundColor: '#0021A5',
+                color: '#FFFFFF',
+                borderColor: '#0021A5 !important',
+                '&:hover': {
+                  backgroundColor: '#001573',
+                },
+              },
+              '&:hover': {
+                backgroundColor: '#F0F2F5',
+              },
+            },
+            gap: 1,
+          }}
+        >
+          <ToggleButton value="standard">Standard</ToggleButton>
+          <ToggleButton value="ibr">IBR</ToggleButton>
+          <ToggleButton value="icr">ICR</ToggleButton>
+          <ToggleButton value="paye">PAYE</ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+
       {/* Interest Rate */}
       <Box sx={{ mb: 4 }}>
         <Typography
@@ -197,6 +266,68 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
         />
       </Box>
 
+      {/* Annual Income */}
+      {repaymentPlan !== 'standard' && (
+      <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 3 }}>
+        <Typography
+          variant="body2"
+          sx={{ mb: 0.75, fontWeight: 600, color: 'text.primary' }}
+        >
+          Annual income
+        </Typography>
+        <TextField
+          fullWidth
+          value={income}
+          onChange={(e) => {
+            const value = e.target.value.replace(/[^0-9,]/g, '');
+            setIncome(value);
+          }}
+          placeholder="50000"
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Typography sx={{ color: '#5A5A7A', fontWeight: 600 }}>
+                    $
+                  </Typography>
+                </InputAdornment>
+              ),
+            },
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              fontSize: '1.05rem',
+            },
+          }}
+        />
+      </Box>
+      
+      {/* Family Size */}
+      <Box>
+        <Typography
+          variant="body2"
+          sx={{ mb: 0.75, fontWeight: 600, color: 'text.primary' }}
+        >
+          Family size
+        </Typography>
+        <TextField
+          fullWidth
+          value={familySize}
+          onChange={(e) => {
+            setFamilySize(e.target.value.replace(/[^0-9]/g, ''));
+          }}
+          placeholder="1"
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              fontSize: '1.05rem',
+            },
+          }}
+        />
+      </Box>
+    </Box>
+  )}
+
       {/* Calculate Button */}
       <Button
         variant="contained"
@@ -221,4 +352,6 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
       </Button>
     </Box>
   );
+
+  
 }
