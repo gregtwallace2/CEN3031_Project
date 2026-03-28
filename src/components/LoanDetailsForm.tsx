@@ -14,7 +14,7 @@ interface LoanDetailsFormProps {
     interestRate: number;
     loanTerm: number;
     termUnit: 'months' | 'years';
-    repaymentPlan: 'standard' | 'idr';
+    repaymentPlan: 'standard' | 'ibr' | 'icr' | 'paye';
     income?: number;
     familySize?: number;
   }) => void;
@@ -25,7 +25,7 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
   const [interestRate, setInterestRate] = useState('5');
   const [loanTerm, setLoanTerm] = useState('10');
   const [termUnit, setTermUnit] = useState<'months' | 'years'>('years');
-  const [repaymentPlan, setRepaymentPlan] = useState<'standard' | 'idr'>('standard');
+  const [repaymentPlan, setRepaymentPlan] = useState<'standard' | 'ibr' | 'icr' | 'paye'>('standard');
   const [income, setIncome] = useState('');
   const [familySize, setFamilySize] = useState('');
 
@@ -39,7 +39,7 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
   };
   const handleRepaymentPlanChange = (
   _: React.MouseEvent<HTMLElement>,
-  newPlan: 'standard' | 'idr' | null,
+  newPlan: 'standard' | 'ibr' | 'icr' | 'paye' | null,
 ) => {
   if (newPlan !== null) {
     setRepaymentPlan(newPlan);
@@ -61,9 +61,9 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
         termUnit,
         repaymentPlan,
         income:
-          repaymentPlan === 'idr' && !isNaN(incomeNum) ? incomeNum : undefined,
+          repaymentPlan !== 'standard' && !isNaN(incomeNum) ? incomeNum : undefined,
         familySize:
-          repaymentPlan === 'idr' && !isNaN(familySizeNum)
+          repaymentPlan !== 'standard' && !isNaN(familySizeNum)
             ? familySizeNum
             : undefined,
       });
@@ -226,7 +226,9 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
           }}
         >
           <ToggleButton value="standard">Standard</ToggleButton>
-          <ToggleButton value="idr">IDR</ToggleButton>
+          <ToggleButton value="ibr">IBR</ToggleButton>
+          <ToggleButton value="icr">ICR</ToggleButton>
+          <ToggleButton value="paye">PAYE</ToggleButton>
         </ToggleButtonGroup>
       </Box>
 
@@ -265,7 +267,7 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
       </Box>
 
       {/* Annual Income */}
-      {repaymentPlan === 'idr' && (
+      {repaymentPlan !== 'standard' && (
       <Box sx={{ mb: 4 }}>
         <Box sx={{ mb: 3 }}>
         <Typography

@@ -31,7 +31,7 @@ function App() {
     interestRate: number;
     loanTerm: number;
     termUnit: 'months' | 'years';
-    repaymentPlan: 'standard' | 'idr';
+    repaymentPlan: 'standard' | 'ibr' | 'icr' | 'paye';
     income?: number;
     familySize?: number;
   }) => {
