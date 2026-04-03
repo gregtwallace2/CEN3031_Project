@@ -4,26 +4,41 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Header from './components/Header';
 import LoanDetailsForm from './components/LoanDetailsForm';
-import ResultsSummary from './components/ResultsSummary';
-import { calculateStandardMonthlyPayment } from './utils/loanCalculations';
+import ResultsSummaryStd from './components/ResultsSummaryStd';
+import ResultsSummaryIDR from './components/ResultsSummaryIDR';
+import {
+  calculateStandardMonthlyPayment,
+  calculateIBR10MonthlyPayment,
+  calculateICRMonthlyPayment,
+  calculatePAYEMonthlyPayment,
+} from './utils/loanCalculations';
 
 interface LoanResults {
+  repaymentPlan: 'standard' | 'ibr' | 'icr' | 'paye';
+
+  // standard
   monthlyPayment: number;
   totalPaid: number;
   totalInterest: number;
   totalCost: number;
+
+  // idr
+  idrPayment: number;
 }
-
-
 
 function App() {
   const defaultMonthly = calculateStandardMonthlyPayment(10000, 5, 10);
+  const defaultIDR = 0;
 
   const [results, setResults] = useState<LoanResults>({
+    repaymentPlan: 'standard',
+
     monthlyPayment: defaultMonthly,
     totalPaid: 10000,
     totalInterest: defaultMonthly * 120 - 10000,
     totalCost: defaultMonthly * 120,
+
+    idrPayment: defaultIDR,
   });
 
   const handleCalculate = (data: {
@@ -38,27 +53,63 @@ function App() {
     const termMonths =
       data.termUnit === 'years' ? data.loanTerm * 12 : data.loanTerm;
     const monthlyPayment = calculateStandardMonthlyPayment(
-    data.principal,
-    data.interestRate,
-    termMonths / 12
-  );
+      data.principal,
+      data.interestRate,
+      termMonths / 12,
+    );
 
-  const totalCost = monthlyPayment * termMonths;
-  const totalInterest = totalCost - data.principal;
+    let IDRPayment = 0;
+    if (data.repaymentPlan !== 'standard') {
+      if (!data.income)
+        throw new Error('Income is missing for idr calculation');
+      if (!data.familySize)
+        throw new Error('Family size is missing for idr calculation');
 
-  setResults({
-    monthlyPayment,
-    totalPaid: data.principal,
-    totalInterest,
-    totalCost,
-  });
-};
+      if (data.repaymentPlan === 'ibr') {
+        IDRPayment = calculateIBR10MonthlyPayment(
+          data.principal,
+          data.interestRate,
+          data.income,
+          data.familySize,
+        );
+      } else if (data.repaymentPlan === 'icr') {
+        IDRPayment = calculateICRMonthlyPayment(
+          data.principal,
+          data.interestRate,
+          data.income,
+          data.familySize,
+        );
+      } else {
+        // paye
+        IDRPayment = calculatePAYEMonthlyPayment(
+          data.principal,
+          data.interestRate,
+          data.income,
+          data.familySize,
+        );
+      }
+    }
+
+    const totalCost = monthlyPayment * termMonths;
+    const totalInterest = totalCost - data.principal;
+
+    setResults({
+      repaymentPlan: data.repaymentPlan,
+
+      monthlyPayment,
+      totalPaid: data.principal,
+      totalInterest,
+      totalCost,
+
+      idrPayment: IDRPayment,
+    });
+  };
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#F5F7FA' }}>
       <Header />
 
-      <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 5 } }}>
+      <Container maxWidth='lg' sx={{ py: { xs: 3, sm: 5 } }}>
         <Paper
           elevation={0}
           sx={{
@@ -88,12 +139,19 @@ function App() {
 
             {/* Right: Results */}
             <Box sx={{ p: { xs: 3, sm: 4 } }}>
-              <ResultsSummary
+              <ResultsSummaryStd
                 monthlyPayment={results.monthlyPayment}
                 totalPaid={results.totalPaid}
                 totalInterest={results.totalInterest}
                 totalCost={results.totalCost}
               />
+
+              {results.repaymentPlan !== 'standard' && (
+                <ResultsSummaryIDR
+                  repaymentPlan={results.repaymentPlan}
+                  monthlyPayment={results.idrPayment}
+                />
+              )}
             </Box>
           </Box>
         </Paper>
