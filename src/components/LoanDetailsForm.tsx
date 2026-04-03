@@ -68,24 +68,29 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
     //Principal validation
     if (isNaN(principalNum)) newErrors.principal = "Principal is required";
     else if (principalNum === 0) newErrors.principal = "Principal must be greater than 0";
-    else if (principalNum > 1_000_000_000_000_000) newErrors.principal = "Principal too large";
+    else if (principalNum > 10_000_000_000) newErrors.principal = "Principal too large";
 
     //Interest rate validation
     if (isNaN(rateNum)) newErrors.interestRate = "Interest rate is required";
-    else if (rateNum > 10_000) newErrors.interestRate = "Interest rate too large";
+    else if (rateNum > 100) newErrors.interestRate = "Interest rate too large";
 
     //Loan term validation
-    if (isNaN(termNum)) newErrors.loanTerm = "Loan term is required";
-    else if (termNum === 0) newErrors.loanTerm = "Loan term must be greater than 0";
-    else if (termNum > 10_000) newErrors.loanTerm = "Loan term too large";
+    // convert years to months
+    let termValidationMonths = termNum;
+    if (termUnit === 'years')
+      termValidationMonths *= 12;
+
+    if (isNaN(termValidationMonths)) newErrors.loanTerm = "Loan term is required";
+    else if (termValidationMonths === 0) newErrors.loanTerm = "Loan term must be greater than 0";
+    else if (termValidationMonths > 600) newErrors.loanTerm = "Loan term too large";
 
     //Conditional validations for non-standard plans
     if (repaymentPlan !== 'standard') {
       if (isNaN(incomeNum) || incomeNum === 0) newErrors.income = "Income must be greater than 0";
-      else if (incomeNum > 1_000_000_000_000_000) newErrors.income = "Income too large";
+      else if (incomeNum > 10_000_000_000) newErrors.income = "Income too large";
 
       if (isNaN(familySizeNum) || familySizeNum < 1) newErrors.familySize = "Family size must be at least 1";
-      else if (familySizeNum > 1000) newErrors.familySize = "Family size too large";
+      else if (familySizeNum > 50) newErrors.familySize = "Family size too large";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -95,7 +100,6 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
 
     setErrors({}); //Clear
     //End of InputValidation Section
-
     
     onCalculate({
       principal: principalNum,
