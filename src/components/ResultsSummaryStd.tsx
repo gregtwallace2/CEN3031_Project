@@ -33,14 +33,16 @@ export default function ResultsSummary({
         backgroundColor: '#EEF2FF',
         borderRadius: 3,
         p: { xs: 3, sm: 4 },
-        height: '100%',
+
         display: 'flex',
         flexDirection: 'column',
+
+        mb: 1,
       }}
     >
       {/* Monthly Payment */}
       <Typography
-        variant="subtitle2"
+        variant='subtitle2'
         sx={{
           fontWeight: 700,
           color: '#1A1A2E',
@@ -48,10 +50,10 @@ export default function ResultsSummary({
           mb: 1,
         }}
       >
-        Estimated monthly payment
+        Estimated Standard Payment
       </Typography>
       <Typography
-        variant="h3"
+        variant='h3'
         sx={{
           fontWeight: 800,
           color: '#0021A5',
@@ -76,13 +78,13 @@ export default function ResultsSummary({
       >
         <Box>
           <Typography
-            variant="body2"
+            variant='body2'
             sx={{ color: '#5A5A7A', fontWeight: 500, mb: 0.5 }}
           >
             Total loan amount paid
           </Typography>
           <Typography
-            variant="h6"
+            variant='h6'
             sx={{ fontWeight: 700, color: '#1A1A2E', fontSize: '1.15rem' }}
           >
             {formatCurrency(totalPaid)}
@@ -90,13 +92,13 @@ export default function ResultsSummary({
         </Box>
         <Box>
           <Typography
-            variant="body2"
+            variant='body2'
             sx={{ color: '#5A5A7A', fontWeight: 500, mb: 0.5 }}
           >
             Total cost of loan
           </Typography>
           <Typography
-            variant="h6"
+            variant='h6'
             sx={{ fontWeight: 700, color: '#1A1A2E', fontSize: '1.15rem' }}
           >
             {formatCurrency(totalCost)}
@@ -106,13 +108,13 @@ export default function ResultsSummary({
 
       <Box sx={{ mb: 3 }}>
         <Typography
-          variant="body2"
+          variant='body2'
           sx={{ color: '#5A5A7A', fontWeight: 500, mb: 0.5 }}
         >
           Total interest paid
         </Typography>
         <Typography
-          variant="h6"
+          variant='h6'
           sx={{ fontWeight: 700, color: '#FA4616', fontSize: '1.15rem' }}
         >
           {formatCurrency(totalInterest)}
@@ -162,7 +164,10 @@ export default function ResultsSummary({
                 backgroundColor: '#0021A5',
               }}
             />
-            <Typography variant="caption" sx={{ color: '#5A5A7A', fontWeight: 500 }}>
+            <Typography
+              variant='caption'
+              sx={{ color: '#5A5A7A', fontWeight: 500 }}
+            >
               Principal ({principalPercent}%)
             </Typography>
           </Box>
@@ -175,7 +180,10 @@ export default function ResultsSummary({
                 backgroundColor: '#FA4616',
               }}
             />
-            <Typography variant="caption" sx={{ color: '#5A5A7A', fontWeight: 500 }}>
+            <Typography
+              variant='caption'
+              sx={{ color: '#5A5A7A', fontWeight: 500 }}
+            >
               Interest ({interestPercent}%)
             </Typography>
           </Box>
