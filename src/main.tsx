@@ -10,10 +10,10 @@ import theme from './theme';
 import App from './App';
 import './index.css';
 
-const rootElement = document.getElementById('root');
+const rootElem = document.getElementById('root');
 
-if (rootElement) {
-  createRoot(rootElement).render(
+if (rootElem) {
+  createRoot(rootElem).render(
     <StrictMode>
       <ThemeProvider theme={theme}>
         <CssBaseline />

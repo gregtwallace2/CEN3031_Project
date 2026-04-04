@@ -1,0 +1,41 @@
+name: Run Build, Tests, and Lint
+
+on:
+  workflow_dispatch:
+  push:
+
+env:
+  GITHUB_REF: ${{ github.ref }}
+  NODE_VERSION: '22.22.2'
+
+permissions:
+  contents: read
+
+jobs:
+  built-test-and-lint:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+        with:
+          repository: gregtwallace2/CEN3031_Project
+          ref: ${{ env.GITHUB_REF }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '${{ env.NODE_VERSION }}'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Built it
+        run: npm run build
+      
+      - name: Test it
+        run: npm run test
+
+      - name: Lint it
+        run: npm run lint
