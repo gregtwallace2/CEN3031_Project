@@ -37,7 +37,14 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
     const rateNum = parseFloat(interestRate);
     const termNum = parseFloat(loanTerm);
 
-    if (!isNaN(principalNum) && !isNaN(rateNum) && !isNaN(termNum)) {
+    if (
+      !isNaN(principalNum) &&
+      !isNaN(rateNum) &&
+      !isNaN(termNum) &&
+      principalNum >= 0 &&
+      rateNum >= 0 &&
+      termNum > 0
+    ) {
       onCalculate({
         principal: principalNum,
         interestRate: rateNum,
