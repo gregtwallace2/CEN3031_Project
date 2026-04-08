@@ -24,6 +24,9 @@ interface LoanResults {
 
   // idr
   idrPayment: number;
+
+  // Date
+  endDate?: Date;
 }
 
 function App() {
@@ -93,6 +96,18 @@ function App() {
     const totalCost = monthlyPayment * termMonths;
     const totalInterest = totalCost - data.principal;
 
+    //Loan Repayment Date Calculations
+    const today = new Date();
+    const endDate = new Date(today);
+
+    const targetMonth = endDate.getMonth() + termMonths;
+    endDate.setMonth(targetMonth);
+
+    // Check for month overflow
+    if (endDate.getDate() !== today.getDate()) {
+      endDate.setDate(0); // go to last day of previous month
+    }
+
     setResults({
       repaymentPlan: data.repaymentPlan,
 
@@ -102,6 +117,7 @@ function App() {
       totalCost,
 
       idrPayment: IDRPayment,
+      endDate,
     });
   };
 
@@ -144,6 +160,7 @@ function App() {
                 totalPaid={results.totalPaid}
                 totalInterest={results.totalInterest}
                 totalCost={results.totalCost}
+                endDate={results.endDate}
               />
 
               {results.repaymentPlan !== 'standard' && (
