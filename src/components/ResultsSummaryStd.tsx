@@ -7,6 +7,7 @@ interface ResultsSummaryProps {
   totalPaid: number;
   totalInterest: number;
   totalCost: number;
+  termMonths: number;
 }
 
 function formatCurrency(value: number): string {
@@ -22,10 +23,23 @@ export default function ResultsSummary({
   totalPaid,
   totalInterest,
   totalCost,
+  termMonths,
 }: ResultsSummaryProps) {
   const principalPercent =
     totalCost > 0 ? Math.round((totalPaid / totalCost) * 100) : 0;
   const interestPercent = 100 - principalPercent;
+
+  //Loan Repayment Date Calculations
+  const today = new Date();
+  const endDate = new Date(today);
+
+  const targetMonth = endDate.getMonth() + termMonths;
+  endDate.setMonth(targetMonth);
+
+  // Check for month overflow
+  if (endDate.getDate() !== today.getDate()) {
+    endDate.setDate(0); // go to last day of previous month
+  }
 
   return (
     <Box
@@ -106,19 +120,47 @@ export default function ResultsSummary({
         </Box>
       </Box>
 
-      <Box sx={{ mb: 3 }}>
-        <Typography
-          variant='body2'
-          sx={{ color: '#5A5A7A', fontWeight: 500, mb: 0.5 }}
-        >
-          Total interest paid
-        </Typography>
-        <Typography
-          variant='h6'
-          sx={{ fontWeight: 700, color: '#FA4616', fontSize: '1.15rem' }}
-        >
-          {formatCurrency(totalInterest)}
-        </Typography>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 3,
+          mb: 3,
+        }}
+      >
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant='body2'
+            sx={{ color: '#5A5A7A', fontWeight: 500, mb: 0.5 }}
+          >
+            Total interest paid
+          </Typography>
+          <Typography
+            variant='h6'
+            sx={{ fontWeight: 700, color: '#FA4616', fontSize: '1.15rem' }}
+          >
+            {formatCurrency(totalInterest)}
+          </Typography>
+        </Box>
+
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant='body2'
+            sx={{ color: '#5A5A7A', fontWeight: 500, mb: 0.5 }}
+          >
+            Full Repayment Date
+          </Typography>
+          <Typography
+            variant='h6'
+            sx={{ fontWeight: 700, color: '#1A1A2E', fontSize: '1.15rem' }}
+          >
+            {endDate.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+          </Typography>
+        </Box>
       </Box>
 
       {/* Visual Bar Chart */}
