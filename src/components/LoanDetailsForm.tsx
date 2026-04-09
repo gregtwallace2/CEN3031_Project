@@ -297,7 +297,9 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
           control={
             <Checkbox
               checked={compareToStandard}
-              onChange={(e) => setCompareToStandard(e.target.checked)}
+              onChange={(e) => {
+                setCompareToStandard(e.target.checked);
+              }}
               sx={{
                 color: '#0021A5',
                 '&.Mui-checked': {
