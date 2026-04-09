@@ -24,6 +24,10 @@ interface LoanResults {
 
   // idr
   idrPayment: number;
+
+  // comparison checkbox
+  compareToStandard: boolean;
+  standardMonthlyPayment: number;
 }
 
 function App() {
@@ -39,6 +43,8 @@ function App() {
     totalCost: defaultMonthly * 120,
 
     idrPayment: defaultIDR,
+    compareToStandard: false,
+    standardMonthlyPayment: defaultMonthly,
   });
 
   const handleCalculate = (data: {
@@ -49,6 +55,7 @@ function App() {
     repaymentPlan: 'standard' | 'ibr' | 'icr' | 'paye';
     income?: number;
     familySize?: number;
+    compareToStandard?: boolean;
   }) => {
     const termMonths =
       data.termUnit === 'years' ? data.loanTerm * 12 : data.loanTerm;
@@ -102,6 +109,8 @@ function App() {
       totalCost,
 
       idrPayment: IDRPayment,
+      compareToStandard: data.compareToStandard ?? false,
+      standardMonthlyPayment: monthlyPayment,
     });
   };
 
@@ -139,17 +148,21 @@ function App() {
 
             {/* Right: Results */}
             <Box sx={{ p: { xs: 3, sm: 4 } }}>
+            {results.repaymentPlan === 'standard' || results.compareToStandard ? (
               <ResultsSummaryStd
                 monthlyPayment={results.monthlyPayment}
                 totalPaid={results.totalPaid}
                 totalInterest={results.totalInterest}
                 totalCost={results.totalCost}
               />
+            ) : null}
 
               {results.repaymentPlan !== 'standard' && (
                 <ResultsSummaryIDR
                   repaymentPlan={results.repaymentPlan}
                   monthlyPayment={results.idrPayment}
+                  compareToStandard={results.compareToStandard}
+                  standardMonthlyPayment={results.standardMonthlyPayment}
                 />
               )}
             </Box>

@@ -4,6 +4,8 @@ import Typography from '@mui/material/Typography';
 interface ResultsSummaryProps {
   repaymentPlan: 'ibr' | 'icr' | 'paye';
   monthlyPayment: number;
+  compareToStandard?: boolean;
+  standardMonthlyPayment?: number;
 }
 
 function formatCurrency(value: number): string {
@@ -17,6 +19,8 @@ function formatCurrency(value: number): string {
 export default function ResultsSummary({
   repaymentPlan,
   monthlyPayment,
+  compareToStandard,
+  standardMonthlyPayment,
 }: ResultsSummaryProps) {
   return (
     <Box
@@ -43,6 +47,7 @@ export default function ResultsSummary({
       >
         Estimated {repaymentPlan.toUpperCase()} Payment
       </Typography>
+
       <Typography
         variant='h3'
         sx={{
@@ -55,6 +60,19 @@ export default function ResultsSummary({
       >
         {formatCurrency(monthlyPayment)}
       </Typography>
+
+      {compareToStandard && standardMonthlyPayment && (
+      <Typography
+        variant="body2"
+        sx={{
+          mt: 2,
+          fontWeight: 600,
+          color: '#1A1A2E',
+        }}
+      >
+        Standard Plan: {formatCurrency(standardMonthlyPayment)}
+      </Typography>
+      )}
 
       {/* TODO: Forgiveness and Other Stats */}
     </Box>

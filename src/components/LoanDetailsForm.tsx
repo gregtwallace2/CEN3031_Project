@@ -7,6 +7,8 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Button from '@mui/material/Button';
 import CalculateIcon from '@mui/icons-material/Calculate';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 
 interface LoanDetailsFormProps {
   onCalculate: (data: {
@@ -17,6 +19,7 @@ interface LoanDetailsFormProps {
     repaymentPlan: 'standard' | 'ibr' | 'icr' | 'paye';
     income?: number;
     familySize?: number;
+    compareToStandard?: boolean;
   }) => void;
 }
 
@@ -28,6 +31,7 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
   const [repaymentPlan, setRepaymentPlan] = useState<'standard' | 'ibr' | 'icr' | 'paye'>('standard');
   const [income, setIncome] = useState('');
   const [familySize, setFamilySize] = useState('');
+  const [compareToStandard, setCompareToStandard] = useState(false);
 
   const handleTermUnitChange = (
     _: React.MouseEvent<HTMLElement>,
@@ -43,6 +47,9 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
 ) => {
   if (newPlan !== null) {
     setRepaymentPlan(newPlan);
+    if (newPlan === 'standard') {
+      setCompareToStandard(false);
+    }
   }
 };
 
@@ -113,6 +120,7 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
         repaymentPlan !== 'standard' && !isNaN(familySizeNum)
           ? familySizeNum
           : undefined,
+      compareToStandard,
     });
     
   };
@@ -282,41 +290,68 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
           <ToggleButton value="paye">PAYE</ToggleButton>
         </ToggleButtonGroup>
       </Box>
-
-      {/* Interest Rate */}
-      <Box sx={{ mb: 4 }}>
-        <Typography
-          variant="body2"
-          sx={{ mb: 0.75, fontWeight: 600, color: 'text.primary' }}
-        >
-          Interest rate
-        </Typography>
-        <TextField
-          fullWidth
-          value={interestRate}
-          onChange={(e) => {
-            setInterestRate(e.target.value.replace(/[^0-9.]/g, ''));
-          }}
-          placeholder="5.0"
-          error={!!errors.interestRate}
-          helperText={errors.interestRate}
-          slotProps={{
-            input: {
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Typography sx={{ color: '#5A5A7A', fontWeight: 600 }}>
-                    %
-                  </Typography>
-                </InputAdornment>
-              ),
-            },
-          }}
+      {/* Compare to Standard Checkbox */}
+      {repaymentPlan !== 'standard' && (
+      <Box sx={{ mb: 3 }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={compareToStandard}
+              onChange={(e) => setCompareToStandard(e.target.checked)}
+              sx={{
+                color: '#0021A5',
+                '&.Mui-checked': {
+                  color: '#0021A5',
+                },
+              }}
+            />
+          }
+          label="Compare income plan to standard"
           sx={{
-            '& .MuiOutlinedInput-root': {
-              fontSize: '1.05rem',
+            ml: 0,
+            '& .MuiFormControlLabel-label': {
+              fontWeight: 600,
+              color: '#1A1A2E',
+              fontSize: '0.95rem',
             },
           }}
         />
+      </Box>
+    )}
+    {/* Interest Rate */}
+    <Box sx={{ mb: 4 }}>
+      <Typography
+        variant="body2"
+        sx={{ mb: 0.75, fontWeight: 600, color: 'text.primary' }}
+      >
+        Interest rate
+      </Typography>
+      <TextField
+        fullWidth
+        value={interestRate}
+        onChange={(e) => {
+          setInterestRate(e.target.value.replace(/[^0-9.]/g, ''));
+        }}
+        placeholder="5.0"
+        error={!!errors.interestRate}
+        helperText={errors.interestRate}
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment position="end">
+                <Typography sx={{ color: '#5A5A7A', fontWeight: 600 }}>
+                  %
+                </Typography>
+              </InputAdornment>
+            ),
+          },
+        }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            fontSize: '1.05rem',
+          },
+        }}
+      />
       </Box>
 
       {/* Annual Income */}
@@ -384,6 +419,27 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
       </Box>
     </Box>
   )}
+      {/* Load/Restore Button */}
+        <Button
+      variant="outlined"
+      size="large"
+      fullWidth
+      sx={{
+        mb: 2,
+        py: 1.5,
+        fontSize: '1rem',
+        fontWeight: 700,
+        borderRadius: '10px',
+        borderColor: '#0021A5',
+        color: '#0021A5',
+        '&:hover': {
+          borderColor: '#001573',
+          backgroundColor: '#EEF2FF',
+        },
+      }}
+    >
+      Load / Restore
+    </Button>
 
       {/* Calculate Button */}
       <Button
