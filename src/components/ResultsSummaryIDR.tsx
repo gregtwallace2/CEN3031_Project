@@ -18,6 +18,23 @@ export default function ResultsSummary({
   repaymentPlan,
   monthlyPayment,
 }: ResultsSummaryProps) {
+  // Forgiveness Eligibility (including PSLF) Calculations
+  let forgivenessTermYears = 25;
+  const forgivenessTermYearsPSLF = 10;
+  if (repaymentPlan === 'ibr') {
+    forgivenessTermYears = 20;
+  }
+
+  const forgivenessDate = new Date();
+  forgivenessDate.setDate(1);
+  const forgivenessPSLFDate = new Date(forgivenessDate);
+  forgivenessDate.setMonth(
+    forgivenessDate.getMonth() + forgivenessTermYears * 12,
+  );
+  forgivenessPSLFDate.setMonth(
+    forgivenessPSLFDate.getMonth() + forgivenessTermYearsPSLF * 12,
+  );
+
   return (
     <Box
       sx={{
@@ -56,7 +73,37 @@ export default function ResultsSummary({
         {formatCurrency(monthlyPayment)}
       </Typography>
 
-      {/* TODO: Forgiveness and Other Stats */}
+      {/* Forgiveness */}
+      <Typography
+        variant='body2'
+        sx={{
+          mt: 2,
+          fontWeight: 600,
+          color: '#1A1A2E',
+        }}
+      >
+        Estimated Eligible for Forgiveness:{' '}
+        {forgivenessDate.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })}
+      </Typography>
+      <Typography
+        variant='body2'
+        sx={{
+          mt: 2,
+          fontWeight: 600,
+          color: '#1A1A2E',
+        }}
+      >
+        Estimated Eligible for Public Service Forgiveness:{' '}
+        {forgivenessPSLFDate.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })}
+      </Typography>
     </Box>
   );
 }
