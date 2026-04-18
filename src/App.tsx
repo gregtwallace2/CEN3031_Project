@@ -213,6 +213,7 @@ function App() {
                 totalPaid={results.totalPaid}
                 totalInterest={results.totalInterest}
                 totalCost={results.totalCost}
+                termMonths={termMonths}
               />
 
               {results.repaymentPlan !== 'standard' && (
