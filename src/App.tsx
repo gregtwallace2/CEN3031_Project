@@ -2,27 +2,28 @@ import { useState } from 'react';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
+import Divider from '@mui/material/Divider';
 import Header from './components/Header';
 import LoanDetailsForm from './components/LoanDetailsForm';
 import ResultsSummaryStd from './components/ResultsSummaryStd';
 import ResultsSummaryIDR from './components/ResultsSummaryIDR';
+import AmortizationTable from './components/AmortizationTable';
 import {
   calculateStandardMonthlyPayment,
   calculateIBR10MonthlyPayment,
   calculateICRMonthlyPayment,
   calculatePAYEMonthlyPayment,
+  generateAmortizationSchedule,
+  type AmortizationScheduleRow,
 } from './utils/loanCalculations';
 
 interface LoanResults {
   repaymentPlan: 'standard' | 'ibr' | 'icr' | 'paye';
-
-  // standard
   monthlyPayment: number;
   totalPaid: number;
   totalInterest: number;
   totalCost: number;
-
-  // idr
+  amortizationSchedule: AmortizationScheduleRow[];
   idrPayment: number;
 
   // comparison checkbox
@@ -30,22 +31,85 @@ interface LoanResults {
   standardMonthlyPayment: number;
 }
 
+interface LoanCalculationInputs {
+  principal: number;
+  interestRate: number;
+  loanTerm: number;
+  termUnit: 'months' | 'years';
+}
+
+interface StandardLoanResults {
+  monthlyPayment: number;
+  totalPaid: number;
+  totalInterest: number;
+  totalCost: number;
+  amortizationSchedule: AmortizationScheduleRow[];
+}
+
+function getCurrentMonthValue(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+
+  return `${String(year)}-${month}`;
+}
+
+function parseStartMonth(startMonth: string): Date {
+  const [year, month] = startMonth.split('-').map(Number);
+
+  if (!year || !month) {
+    const now = new Date();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  }
+
+  return new Date(Date.UTC(year, month - 1, 1));
+}
+
+function calculateStandardLoanResults(
+  principal: number,
+  annualRate: number,
+  termMonths: number,
+  startMonth: string,
+): StandardLoanResults {
+  const amortizationSchedule = generateAmortizationSchedule(
+    principal,
+    annualRate,
+    termMonths,
+    parseStartMonth(startMonth),
+  );
+  const totalCost = amortizationSchedule.reduce(
+    (sum, row) => sum + row.paymentAmount,
+    0,
+  );
+  const totalInterest = amortizationSchedule.reduce(
+    (sum, row) => sum + row.interestPaid,
+    0,
+  );
+  const monthlyPayment =
+    amortizationSchedule[0]?.paymentAmount ??
+    calculateStandardMonthlyPayment(principal, annualRate, termMonths / 12);
+
+  return {
+    monthlyPayment,
+    totalPaid: principal,
+    totalInterest,
+    totalCost,
+    amortizationSchedule,
+  };
+}
+
 function App() {
-  const defaultMonthly = calculateStandardMonthlyPayment(10000, 5, 10);
-  const defaultIDR = 0;
-
-  const [results, setResults] = useState<LoanResults>({
-    repaymentPlan: 'standard',
-
-    monthlyPayment: defaultMonthly,
-    totalPaid: 10000,
-    totalInterest: defaultMonthly * 120 - 10000,
-    totalCost: defaultMonthly * 120,
-
-    idrPayment: defaultIDR,
-    compareToStandard: false,
-    standardMonthlyPayment: defaultMonthly,
+  const [startMonth, setStartMonth] = useState(getCurrentMonthValue);
+  const [loanInputs, setLoanInputs] = useState<LoanCalculationInputs>({
+    principal: 10000,
+    interestRate: 5,
+    loanTerm: 10,
+    termUnit: 'years',
   });
+  const [repaymentPlan, setRepaymentPlan] =
+    useState<LoanResults['repaymentPlan']>('standard');
+  const [idrPayment, setIdrPayment] = useState(0);
+  const [compareToStandard, setCompareToStandard] = useState(false);
 
   const handleCalculate = (data: {
     principal: number;
@@ -57,38 +121,32 @@ function App() {
     familySize?: number;
     compareToStandard?: boolean;
   }) => {
-    const termMonths =
-      data.termUnit === 'years' ? data.loanTerm * 12 : data.loanTerm;
-    const monthlyPayment = calculateStandardMonthlyPayment(
-      data.principal,
-      data.interestRate,
-      termMonths / 12,
-    );
+    let nextIDRPayment = 0;
 
-    let IDRPayment = 0;
     if (data.repaymentPlan !== 'standard') {
-      if (!data.income)
+      if (!data.income) {
         throw new Error('Income is missing for idr calculation');
-      if (!data.familySize)
+      }
+      if (!data.familySize) {
         throw new Error('Family size is missing for idr calculation');
+      }
 
       if (data.repaymentPlan === 'ibr') {
-        IDRPayment = calculateIBR10MonthlyPayment(
+        nextIDRPayment = calculateIBR10MonthlyPayment(
           data.principal,
           data.interestRate,
           data.income,
           data.familySize,
         );
       } else if (data.repaymentPlan === 'icr') {
-        IDRPayment = calculateICRMonthlyPayment(
+        nextIDRPayment = calculateICRMonthlyPayment(
           data.principal,
           data.interestRate,
           data.income,
           data.familySize,
         );
       } else {
-        // paye
-        IDRPayment = calculatePAYEMonthlyPayment(
+        nextIDRPayment = calculatePAYEMonthlyPayment(
           data.principal,
           data.interestRate,
           data.income,
@@ -97,28 +155,46 @@ function App() {
       }
     }
 
-    const totalCost = monthlyPayment * termMonths;
-    const totalInterest = totalCost - data.principal;
-
-    setResults({
-      repaymentPlan: data.repaymentPlan,
-
-      monthlyPayment,
-      totalPaid: data.principal,
-      totalInterest,
-      totalCost,
-
-      idrPayment: IDRPayment,
-      compareToStandard: data.compareToStandard ?? false,
-      standardMonthlyPayment: monthlyPayment,
+    setLoanInputs({
+      principal: data.principal,
+      interestRate: data.interestRate,
+      loanTerm: data.loanTerm,
+      termUnit: data.termUnit,
     });
+    setRepaymentPlan(data.repaymentPlan);
+    setIdrPayment(nextIDRPayment);
+    setCompareToStandard(data.compareToStandard ?? false);
+  };
+
+  const termMonths =
+    loanInputs.termUnit === 'years'
+      ? loanInputs.loanTerm * 12
+      : loanInputs.loanTerm;
+
+  const standardResults = calculateStandardLoanResults(
+    loanInputs.principal,
+    loanInputs.interestRate,
+    termMonths,
+    startMonth,
+  );
+
+  const results: LoanResults = {
+    repaymentPlan,
+    monthlyPayment: standardResults.monthlyPayment,
+    totalPaid: standardResults.totalPaid,
+    totalInterest: standardResults.totalInterest,
+    totalCost: standardResults.totalCost,
+    amortizationSchedule: standardResults.amortizationSchedule,
+    idrPayment,
+    compareToStandard,
+    standardMonthlyPayment: standardResults.monthlyPayment,
   };
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#F5F7FA' }}>
       <Header />
 
-      <Container maxWidth='lg' sx={{ py: { xs: 3, sm: 5 } }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 5 } }}>
         <Paper
           elevation={0}
           sx={{
@@ -135,7 +211,6 @@ function App() {
               minHeight: 480,
             }}
           >
-            {/* Left: Form */}
             <Box
               sx={{
                 p: { xs: 3, sm: 4 },
@@ -146,26 +221,35 @@ function App() {
               <LoanDetailsForm onCalculate={handleCalculate} />
             </Box>
 
-            {/* Right: Results */}
             <Box sx={{ p: { xs: 3, sm: 4 } }}>
-            {results.repaymentPlan === 'standard' || results.compareToStandard ? (
-              <ResultsSummaryStd
-                monthlyPayment={results.monthlyPayment}
-                totalPaid={results.totalPaid}
-                totalInterest={results.totalInterest}
-                totalCost={results.totalCost}
-              />
-            ) : null}
+              {results.repaymentPlan === 'standard' ||
+              results.compareToStandard ? (
+                <ResultsSummaryStd
+                  monthlyPayment={results.monthlyPayment}
+                  totalPaid={results.totalPaid}
+                  totalInterest={results.totalInterest}
+                  totalCost={results.totalCost}
+                  termMonths={termMonths}
+                />
+              ) : null}
 
               {results.repaymentPlan !== 'standard' && (
                 <ResultsSummaryIDR
                   repaymentPlan={results.repaymentPlan}
                   monthlyPayment={results.idrPayment}
-                  compareToStandard={results.compareToStandard}
-                  standardMonthlyPayment={results.standardMonthlyPayment}
                 />
               )}
             </Box>
+          </Box>
+
+          <Divider sx={{ borderColor: '#E2E8F0' }} />
+
+          <Box sx={{ p: { xs: 3, sm: 4 } }}>
+            <AmortizationTable
+              onStartMonthChange={setStartMonth}
+              rows={results.amortizationSchedule}
+              startMonth={startMonth}
+            />
           </Box>
         </Paper>
       </Container>

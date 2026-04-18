@@ -28,7 +28,9 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
   const [interestRate, setInterestRate] = useState('5');
   const [loanTerm, setLoanTerm] = useState('10');
   const [termUnit, setTermUnit] = useState<'months' | 'years'>('years');
-  const [repaymentPlan, setRepaymentPlan] = useState<'standard' | 'ibr' | 'icr' | 'paye'>('standard');
+  const [repaymentPlan, setRepaymentPlan] = useState<
+    'standard' | 'ibr' | 'icr' | 'paye'
+  >('standard');
   const [income, setIncome] = useState('');
   const [familySize, setFamilySize] = useState('');
   const [compareToStandard, setCompareToStandard] = useState(false);
@@ -53,7 +55,6 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
   }
 };
 
-  //Error Handling
   const [errors, setErrors] = useState<{
     principal?: string;
     interestRate?: string;
@@ -69,35 +70,38 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
     const incomeNum = parseFloat(income.replace(/,/g, ''));
     const familySizeNum = parseFloat(familySize);
 
-    //Input Validation Section
     const newErrors: typeof errors = {};
 
-    //Principal validation
-    if (isNaN(principalNum)) newErrors.principal = "Principal is required";
-    else if (principalNum === 0) newErrors.principal = "Principal must be greater than 0";
-    else if (principalNum > 10_000_000_000) newErrors.principal = "Principal too large";
+    if (isNaN(principalNum)) newErrors.principal = 'Principal is required';
+    else if (principalNum === 0)
+      newErrors.principal = 'Principal must be greater than 0';
+    else if (principalNum > 10_000_000_000)
+      newErrors.principal = 'Principal too large';
 
-    //Interest rate validation
-    if (isNaN(rateNum)) newErrors.interestRate = "Interest rate is required";
-    else if (rateNum > 100) newErrors.interestRate = "Interest rate too large";
+    if (isNaN(rateNum)) newErrors.interestRate = 'Interest rate is required';
+    else if (rateNum > 100)
+      newErrors.interestRate = 'Interest rate too large';
 
-    //Loan term validation
-    // convert years to months
     let termValidationMonths = termNum;
-    if (termUnit === 'years')
-      termValidationMonths *= 12;
+    if (termUnit === 'years') termValidationMonths *= 12;
 
-    if (isNaN(termValidationMonths)) newErrors.loanTerm = "Loan term is required";
-    else if (termValidationMonths === 0) newErrors.loanTerm = "Loan term must be greater than 0";
-    else if (termValidationMonths > 600) newErrors.loanTerm = "Loan term too large";
+    if (isNaN(termValidationMonths))
+      newErrors.loanTerm = 'Loan term is required';
+    else if (termValidationMonths === 0)
+      newErrors.loanTerm = 'Loan term must be greater than 0';
+    else if (termValidationMonths > 600)
+      newErrors.loanTerm = 'Loan term too large';
 
-    //Conditional validations for non-standard plans
     if (repaymentPlan !== 'standard') {
-      if (isNaN(incomeNum) || incomeNum === 0) newErrors.income = "Income must be greater than 0";
-      else if (incomeNum > 10_000_000_000) newErrors.income = "Income too large";
+      if (isNaN(incomeNum) || incomeNum === 0)
+        newErrors.income = 'Income must be greater than 0';
+      else if (incomeNum > 10_000_000_000)
+        newErrors.income = 'Income too large';
 
-      if (isNaN(familySizeNum) || familySizeNum < 1) newErrors.familySize = "Family size must be at least 1";
-      else if (familySizeNum > 50) newErrors.familySize = "Family size too large";
+      if (isNaN(familySizeNum) || familySizeNum < 1)
+        newErrors.familySize = 'Family size must be at least 1';
+      else if (familySizeNum > 50)
+        newErrors.familySize = 'Family size too large';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -105,9 +109,8 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
       return;
     }
 
-    setErrors({}); //Clear
-    //End of InputValidation Section
-    
+    setErrors({});
+
     onCalculate({
       principal: principalNum,
       interestRate: rateNum,
@@ -115,14 +118,15 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
       termUnit,
       repaymentPlan,
       income:
-        repaymentPlan !== 'standard' && !isNaN(incomeNum) ? incomeNum : undefined,
+        repaymentPlan !== 'standard' && !isNaN(incomeNum)
+          ? incomeNum
+          : undefined,
       familySize:
         repaymentPlan !== 'standard' && !isNaN(familySizeNum)
           ? familySizeNum
           : undefined,
       compareToStandard,
     });
-    
   };
 
   const formatPrincipalInput = (value: string) => {
@@ -152,7 +156,6 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
         Loan Details
       </Typography>
 
-      {/* Loan Amount */}
       <Box sx={{ mb: 3 }}>
         <Typography
           variant="body2"
@@ -186,7 +189,6 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
         />
       </Box>
 
-      {/* Loan Term */}
       <Box sx={{ mb: 3 }}>
         <Typography
           variant="body2"
@@ -245,8 +247,6 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
         </ToggleButtonGroup>
       </Box>
 
-      
-      {/* Repayment Plan */}
       <Box sx={{ mb: 3 }}>
         <Typography
           variant="body2"
@@ -310,53 +310,54 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
           }
           label="Compare income plan to standard"
           sx={{
-            ml: 0,
-            '& .MuiFormControlLabel-label': {
-              fontWeight: 600,
-              color: '#1A1A2E',
-              fontSize: '0.95rem',
+              ml: 0,
+              '& .MuiFormControlLabel-label': {
+                fontWeight: 600,
+                color: '#1A1A2E',
+                fontSize: '0.95rem',
+              },
+            }}
+          />
+        </Box>
+      )}
+
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="body2"
+          sx={{ mb: 0.75, fontWeight: 600, color: 'text.primary' }}
+        >
+          Interest rate
+        </Typography>
+        <TextField
+          fullWidth
+          value={interestRate}
+          onChange={(e) => {
+            setInterestRate(e.target.value.replace(/[^0-9.]/g, ''));
+          }}
+          placeholder="5.0"
+          error={!!errors.interestRate}
+          helperText={errors.interestRate}
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <Typography sx={{ color: '#5A5A7A', fontWeight: 600 }}>
+                    %
+                  </Typography>
+                </InputAdornment>
+              ),
+            },
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              fontSize: '1.05rem',
             },
           }}
         />
       </Box>
-    )}
-    {/* Interest Rate */}
-    <Box sx={{ mb: 4 }}>
-      <Typography
-        variant="body2"
-        sx={{ mb: 0.75, fontWeight: 600, color: 'text.primary' }}
-      >
-        Interest rate
-      </Typography>
-      <TextField
-        fullWidth
-        value={interestRate}
-        onChange={(e) => {
-          setInterestRate(e.target.value.replace(/[^0-9.]/g, ''));
-        }}
-        placeholder="5.0"
-        error={!!errors.interestRate}
-        helperText={errors.interestRate}
-        slotProps={{
-          input: {
-            endAdornment: (
-              <InputAdornment position="end">
-                <Typography sx={{ color: '#5A5A7A', fontWeight: 600 }}>
-                  %
-                </Typography>
-              </InputAdornment>
-            ),
-          },
-        }}
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            fontSize: '1.05rem',
-          },
-        }}
-      />
-      </Box>
+    
 
-      {/* Annual Income */}
+
       {repaymentPlan !== 'standard' && (
       <Box sx={{ mb: 4 }}>
         <Box sx={{ mb: 3 }}>
@@ -443,7 +444,6 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
       Load / Restore
     </Button>
 
-      {/* Calculate Button */}
       <Button
         variant="contained"
         size="large"
@@ -467,6 +467,4 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
       </Button>
     </Box>
   );
-
-  
 }
