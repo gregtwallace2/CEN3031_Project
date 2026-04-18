@@ -24,7 +24,7 @@ function createFakeClient(initialSession: Session | null = null): {
 
   const auth: FakeAuth = {
     getSession: vi.fn().mockResolvedValue({ data: { session: initialSession } }),
-    onAuthStateChange: vi.fn((cb) => {
+    onAuthStateChange: vi.fn((cb: (event: string, session: Session | null) => void) => {
       listener = cb;
       return {
         data: {
@@ -82,6 +82,7 @@ describe('AuthProvider', () => {
 
   it('throws when useAuth is called outside the provider', () => {
     // Suppress React's error log for this expected throw.
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => renderHook(() => useAuth())).toThrow(
       /useAuth must be used within an AuthProvider/,
@@ -232,8 +233,9 @@ describe('AuthProvider', () => {
       expect(auth.onAuthStateChange).toHaveBeenCalled();
     });
 
-    const subscription = auth.onAuthStateChange.mock.results[0]?.value.data
-      .subscription as { unsubscribe: ReturnType<typeof vi.fn> };
+    interface SubscriptionResult { data: { subscription: { unsubscribe: ReturnType<typeof vi.fn> } } }
+    const mockResult = auth.onAuthStateChange.mock.results[0]?.value as SubscriptionResult;
+    const subscription = mockResult.data.subscription;
 
     unmount();
     expect(subscription.unsubscribe).toHaveBeenCalled();

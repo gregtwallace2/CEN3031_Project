@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type SyntheticEvent } from 'react';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
@@ -30,7 +30,7 @@ export default function LoginPage({ onClose }: LoginPageProps) {
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     setInfo(null);
@@ -116,7 +116,7 @@ export default function LoginPage({ onClose }: LoginPageProps) {
                   <GoogleIcon />
                 )
               }
-              onClick={handleGoogle}
+              onClick={() => { void handleGoogle(); }}
               disabled={googleSubmitting || submitting}
               aria-label='Continue with Google'
             >
@@ -125,7 +125,7 @@ export default function LoginPage({ onClose }: LoginPageProps) {
 
             <Divider>or</Divider>
 
-            <Box component='form' onSubmit={handleSubmit} noValidate>
+            <Box component='form' onSubmit={(e) => { void handleSubmit(e); }} noValidate>
               <Stack spacing={2}>
                 <TextField
                   label='Email'
@@ -137,7 +137,7 @@ export default function LoginPage({ onClose }: LoginPageProps) {
                   autoComplete='email'
                   required
                   fullWidth
-                  inputProps={{ 'aria-label': 'Email' }}
+                  slotProps={{ htmlInput: { 'aria-label': 'Email' } }}
                 />
                 <TextField
                   label='Password'
@@ -149,7 +149,7 @@ export default function LoginPage({ onClose }: LoginPageProps) {
                   autoComplete={isSignIn ? 'current-password' : 'new-password'}
                   required
                   fullWidth
-                  inputProps={{ 'aria-label': 'Password' }}
+                  slotProps={{ htmlInput: { 'aria-label': 'Password' } }}
                 />
                 <Button
                   type='submit'
