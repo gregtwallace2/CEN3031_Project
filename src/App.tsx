@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -8,6 +8,8 @@ import LoanDetailsForm from './components/LoanDetailsForm';
 import ResultsSummaryStd from './components/ResultsSummaryStd';
 import ResultsSummaryIDR from './components/ResultsSummaryIDR';
 import AmortizationTable from './components/AmortizationTable';
+import LoginPage from './components/LoginPage';
+import { useAuth } from './auth/AuthContext';
 import {
   calculateStandardMonthlyPayment,
   calculateIBR10MonthlyPayment,
@@ -95,6 +97,8 @@ function calculateStandardLoanResults(
 }
 
 function App() {
+  const { user } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
   const [startMonth, setStartMonth] = useState(getCurrentMonthValue);
   const [loanInputs, setLoanInputs] = useState<LoanCalculationInputs>({
     principal: 10000,
@@ -105,6 +109,13 @@ function App() {
   const [repaymentPlan, setRepaymentPlan] =
     useState<LoanResults['repaymentPlan']>('standard');
   const [idrPayment, setIdrPayment] = useState(0);
+
+  // Auto-dismiss the login view once the user is authenticated.
+  useEffect(() => {
+    if (user) {
+      setShowLogin(false);
+    }
+  }, [user]);
 
   const handleCalculate = (data: {
     principal: number;
@@ -176,66 +187,81 @@ function App() {
     idrPayment,
   };
 
+  // When the user clicks "Sign in" we hide the calculator and render the login
+  // view. Once they're signed in we automatically return them to the calculator.
+  const showLoginView = showLogin && !user;
+
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#F5F7FA' }}>
-      <Header />
+      <Header
+        onSignInClick={() => {
+          setShowLogin(true);
+        }}
+      />
 
-      <Container maxWidth='lg' sx={{ py: { xs: 3, sm: 5 } }}>
-        <Paper
-          elevation={0}
-          sx={{
-            borderRadius: 3,
-            border: '1px solid #E2E8F0',
-            borderTop: '4px solid #0021A5',
-            overflow: 'hidden',
+      {showLoginView ? (
+        <LoginPage
+          onClose={() => {
+            setShowLogin(false);
           }}
-        >
-          <Box
+        />
+      ) : (
+        <Container maxWidth='lg' sx={{ py: { xs: 3, sm: 5 } }}>
+          <Paper
+            elevation={0}
             sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '5fr 7fr' },
-              minHeight: 480,
+              borderRadius: 3,
+              border: '1px solid #E2E8F0',
+              borderTop: '4px solid #0021A5',
+              overflow: 'hidden',
             }}
           >
             <Box
               sx={{
-                p: { xs: 3, sm: 4 },
-                borderRight: { md: '1px solid #E2E8F0' },
-                borderBottom: { xs: '1px solid #E2E8F0', md: 'none' },
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '5fr 7fr' },
+                minHeight: 480,
               }}
             >
-              <LoanDetailsForm onCalculate={handleCalculate} />
+              <Box
+                sx={{
+                  p: { xs: 3, sm: 4 },
+                  borderRight: { md: '1px solid #E2E8F0' },
+                  borderBottom: { xs: '1px solid #E2E8F0', md: 'none' },
+                }}
+              >
+                <LoanDetailsForm onCalculate={handleCalculate} />
+              </Box>
+
+              <Box sx={{ p: { xs: 3, sm: 4 } }}>
+                <ResultsSummaryStd
+                  monthlyPayment={results.monthlyPayment}
+                  totalPaid={results.totalPaid}
+                  totalInterest={results.totalInterest}
+                  totalCost={results.totalCost}
+                />
+
+                {results.repaymentPlan !== 'standard' && (
+                  <ResultsSummaryIDR
+                    repaymentPlan={results.repaymentPlan}
+                    monthlyPayment={results.idrPayment}
+                  />
+                )}
+              </Box>
             </Box>
+
+            <Divider sx={{ borderColor: '#E2E8F0' }} />
 
             <Box sx={{ p: { xs: 3, sm: 4 } }}>
-              <ResultsSummaryStd
-                monthlyPayment={results.monthlyPayment}
-                totalPaid={results.totalPaid}
-                totalInterest={results.totalInterest}
-                totalCost={results.totalCost}
-                termMonths={termMonths}
+              <AmortizationTable
+                onStartMonthChange={setStartMonth}
+                rows={results.amortizationSchedule}
+                startMonth={startMonth}
               />
-
-              {results.repaymentPlan !== 'standard' && (
-                <ResultsSummaryIDR
-                  repaymentPlan={results.repaymentPlan}
-                  monthlyPayment={results.idrPayment}
-                />
-              )}
             </Box>
-          </Box>
-
-          <Divider sx={{ borderColor: '#E2E8F0' }} />
-
-          <Box sx={{ p: { xs: 3, sm: 4 } }}>
-            <AmortizationTable
-              onStartMonthChange={setStartMonth}
-              rows={results.amortizationSchedule}
-              startMonth={startMonth}
-            />
-          </Box>
-        </Paper>
-      </Container>
+          </Paper>
+        </Container>
+      )}
     </Box>
   );
 }
