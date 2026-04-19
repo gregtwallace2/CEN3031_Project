@@ -32,7 +32,7 @@ interface LoanDetailsFormProps {
 }
 
 function formatPrincipalInput(value: string): string {
-  const digits = value.replace(/[^0-9.]/g, '');
+  const digits = value.replaceAll(/[^0-9.]/g, '');
   const parts = digits.split('.');
   if (parts[0]) {
     parts[0] = Number(parts[0]).toLocaleString('en-US');
@@ -45,7 +45,7 @@ export default function LoanDetailsForm({
   onSaveRequest,
   defaultValues,
   isLoggedIn = false,
-}: LoanDetailsFormProps) {
+}: Readonly<LoanDetailsFormProps>) {
   const [principal, setPrincipal] = useState('10,000');
   const [interestRate, setInterestRate] = useState('5');
   const [loanTerm, setLoanTerm] = useState('10');
@@ -80,8 +80,8 @@ export default function LoanDetailsForm({
     setLoanTerm(String(defaultValues.loanTerm));
     setTermUnit(defaultValues.termUnit);
     setRepaymentPlan(defaultValues.repaymentPlan);
-    setIncome(defaultValues.income != null ? String(defaultValues.income) : '');
-    setFamilySize(defaultValues.familySize != null ? String(defaultValues.familySize) : '');
+    setIncome(defaultValues.income ? String(defaultValues.income) : '');
+    setFamilySize(defaultValues.familySize ? String(defaultValues.familySize) : '');
     setErrors({});
     /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -93,7 +93,7 @@ export default function LoanDetailsForm({
     _: React.MouseEvent<HTMLElement>,
     newUnit: 'months' | 'years' | null,
   ) => {
-    if (newUnit !== null) {
+    if (newUnit) {
       setTermUnit(newUnit);
     }
   };
@@ -102,7 +102,7 @@ export default function LoanDetailsForm({
   _: React.MouseEvent<HTMLElement>,
   newPlan: 'standard' | 'ibr' | 'icr' | 'paye' | null,
 ) => {
-  if (newPlan !== null) {
+  if (newPlan) {
     setRepaymentPlan(newPlan);
     if (newPlan === 'standard') {
       setCompareToStandard(false);
@@ -111,41 +111,47 @@ export default function LoanDetailsForm({
 };
 
   const buildFormValues = (): FormValues | null => {
-    const principalNum = parseFloat(principal.replace(/,/g, ''));
-    const rateNum = parseFloat(interestRate);
-    const termNum = parseFloat(loanTerm);
-    const incomeNum = parseFloat(income.replace(/,/g, ''));
-    const familySizeNum = parseFloat(familySize);
+    const principalNum = Number.parseFloat(principal.replaceAll(/,/g, ''));
+    const rateNum = Number.parseFloat(interestRate);
+    const termNum = Number.parseFloat(loanTerm);
+    const incomeNum = Number.parseFloat(income.replaceAll(/,/g, ''));
+    const familySizeNum = Number.parseFloat(familySize);
 
     const newErrors: typeof errors = {};
 
-    if (isNaN(principalNum)) newErrors.principal = 'Principal is required';
+    // principal
+    if (Number.isNaN(principalNum)) newErrors.principal = 'Principal is required';
     else if (principalNum === 0)
       newErrors.principal = 'Principal must be greater than 0';
     else if (principalNum > 10_000_000_000)
       newErrors.principal = 'Principal too large';
 
-    if (isNaN(rateNum)) newErrors.interestRate = 'Interest rate is required';
+    // interest rate
+    if (Number.isNaN(rateNum)) newErrors.interestRate = 'Interest rate is required';
     else if (rateNum > 100)
       newErrors.interestRate = 'Interest rate too large';
 
+    // loan term
     let termValidationMonths = termNum;
     if (termUnit === 'years') termValidationMonths *= 12;
 
-    if (isNaN(termValidationMonths))
+    if (Number.isNaN(termValidationMonths))
       newErrors.loanTerm = 'Loan term is required';
     else if (termValidationMonths === 0)
       newErrors.loanTerm = 'Loan term must be greater than 0';
     else if (termValidationMonths > 600)
       newErrors.loanTerm = 'Loan term too large';
 
+    // idr: 
     if (repaymentPlan !== 'standard') {
-      if (isNaN(incomeNum) || incomeNum === 0)
+      // idr: income
+      if (Number.isNaN(incomeNum) || incomeNum === 0)
         newErrors.income = 'Income must be greater than 0';
       else if (incomeNum > 10_000_000_000)
         newErrors.income = 'Income too large';
 
-      if (isNaN(familySizeNum) || familySizeNum < 1)
+      // idr: family size
+      if (Number.isNaN(familySizeNum) || familySizeNum < 1)
         newErrors.familySize = 'Family size must be at least 1';
       else if (familySizeNum > 50)
         newErrors.familySize = 'Family size too large';
@@ -165,9 +171,9 @@ export default function LoanDetailsForm({
       termUnit,
       repaymentPlan,
       income:
-        repaymentPlan !== 'standard' && !isNaN(incomeNum) ? incomeNum : undefined,
+        repaymentPlan !== 'standard' && !Number.isNaN(incomeNum) ? incomeNum : undefined,
       familySize:
-        repaymentPlan !== 'standard' && !isNaN(familySizeNum)
+        repaymentPlan !== 'standard' && !Number.isNaN(familySizeNum)
           ? familySizeNum
           : undefined,
       compareToStandard,
@@ -246,7 +252,7 @@ export default function LoanDetailsForm({
           fullWidth
           value={loanTerm}
           onChange={(e) => {
-            setLoanTerm(e.target.value.replace(/[^0-9]/g, ''));
+            setLoanTerm(e.target.value.replaceAll(/\D/g, ''));
           }}
           placeholder="10"
           error={!!errors.loanTerm}
@@ -378,7 +384,7 @@ export default function LoanDetailsForm({
           fullWidth
           value={interestRate}
           onChange={(e) => {
-            setInterestRate(e.target.value.replace(/[^0-9.]/g, ''));
+            setInterestRate(e.target.value.replaceAll(/[^0-9.]/g, ''));
           }}
           placeholder="5.0"
           error={!!errors.interestRate}
@@ -417,7 +423,7 @@ export default function LoanDetailsForm({
           fullWidth
           value={income}
           onChange={(e) => {
-            const value = e.target.value.replace(/[^0-9,]/g, '');
+            const value = e.target.value.replaceAll(/[^0-9,]/g, '');
             setIncome(value);
           }}
           placeholder="50000"
@@ -454,7 +460,7 @@ export default function LoanDetailsForm({
           fullWidth
           value={familySize}
           onChange={(e) => {
-            setFamilySize(e.target.value.replace(/[^0-9]/g, ''));
+            setFamilySize(e.target.value.replaceAll(/\D/g, ''));
           }}
           placeholder="1"
           error={!!errors.familySize}

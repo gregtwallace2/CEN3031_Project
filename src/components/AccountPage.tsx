@@ -45,7 +45,7 @@ export default function AccountPage({
   onBack,
   onLoad,
   onScenariosChange,
-}: AccountPageProps) {
+}: Readonly<AccountPageProps>) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [renaming, setRenaming] = useState(false);
@@ -107,9 +107,9 @@ export default function AccountPage({
               My Scenarios
             </Typography>
             <Typography variant="body2" sx={{ color: '#5A5A7A' }}>
-              {scenarios.length === 0
-                ? 'No saved scenarios yet'
-                : `${String(scenarios.length)} saved scenario${scenarios.length === 1 ? '' : 's'}`}
+              {scenarios.length === 0 && 'No saved scenarios yet'}
+              {scenarios.length === 1 && '1 saved scenario'}
+              {scenarios.length > 1 && `${String(scenarios.length)} saved scenarios`}
             </Typography>
           </Box>
         </Box>
@@ -240,7 +240,7 @@ export default function AccountPage({
                         variant="outlined"
                         sx={{ fontSize: '0.72rem' }}
                       />
-                      {scenario.income != null && (
+                      {scenario.income && (
                         <Chip
                           label={`Income: ${formatCurrency(scenario.income)}`}
                           size="small"
@@ -271,7 +271,7 @@ export default function AccountPage({
                       onClick={() => {
                         startEdit(scenario);
                       }}
-                      disabled={editingId !== null}
+                      disabled={!!editingId}
                       aria-label="Rename scenario"
                       sx={{ color: '#5A5A7A' }}
                     >

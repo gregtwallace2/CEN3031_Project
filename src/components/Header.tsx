@@ -39,7 +39,7 @@ export default function Header({
   onAccountClick,
   savedScenarios = [],
   onLoadScenario,
-}: HeaderProps) {
+}: Readonly<HeaderProps>) {
   const { user, loading, signOut } = useAuth();
 
   // Avatar / account dropdown

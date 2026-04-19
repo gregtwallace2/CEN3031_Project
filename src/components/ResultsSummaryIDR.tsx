@@ -18,7 +18,7 @@ function formatCurrency(value: number): string {
 export default function ResultsSummary({
   repaymentPlan,
   monthlyPayment,
-}: ResultsSummaryProps) {
+}: Readonly<ResultsSummaryProps>) {
   // Forgiveness Eligibility (including PSLF) Calculations
   let forgivenessTermYears = 25;
   const forgivenessTermYearsPSLF = 10;

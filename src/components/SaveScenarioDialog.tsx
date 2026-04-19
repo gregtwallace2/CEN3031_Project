@@ -18,7 +18,7 @@ export default function SaveScenarioDialog({
   open,
   onClose,
   onSave,
-}: SaveScenarioDialogProps) {
+}: Readonly<SaveScenarioDialogProps>) {
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

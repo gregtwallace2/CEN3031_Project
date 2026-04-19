@@ -23,16 +23,16 @@ function createFakeClient() {
 function Wrap({
   client,
   children,
-}: {
+}: Readonly<{
   client: SupabaseClient;
   children: ReactNode;
-}) {
+}>) {
   return <AuthProvider client={client}>{children}</AuthProvider>;
 }
 
 describe('LoginPage', () => {
   beforeEach(() => {
-    Object.defineProperty(window, 'location', {
+    Object.defineProperty(globalThis, 'location', {
       value: { origin: 'http://localhost', pathname: '/' },
       writable: true,
     });
