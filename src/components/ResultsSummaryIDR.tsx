@@ -61,6 +61,7 @@ export default function ResultsSummary({
       >
         Estimated {repaymentPlan.toUpperCase()} Payment
       </Typography>
+
       <Typography
         variant='h3'
         sx={{
