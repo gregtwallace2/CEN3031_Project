@@ -34,6 +34,10 @@ interface LoanResults {
   totalCost: number;
   amortizationSchedule: AmortizationScheduleRow[];
   idrPayment: number;
+
+  // comparison checkbox
+  compareToStandard: boolean;
+  standardMonthlyPayment: number;
 }
 
 interface LoanCalculationInputs {
@@ -117,6 +121,7 @@ function App() {
   const [repaymentPlan, setRepaymentPlan] =
     useState<LoanResults['repaymentPlan']>('standard');
   const [idrPayment, setIdrPayment] = useState(0);
+  const [compareToStandard, setCompareToStandard] = useState(false);
 
   // Scenario state
   const [savedScenarios, setSavedScenarios] = useState<Scenario[]>([]);
@@ -147,11 +152,14 @@ function App() {
 
   const handleCalculate = useCallback((data: FormValues) => {
     let nextIDRPayment = 0;
+
     if (data.repaymentPlan !== 'standard') {
-      if (!data.income)
+      if (!data.income) {
         throw new Error('Income is missing for idr calculation');
-      if (!data.familySize)
+      }
+      if (!data.familySize) {
         throw new Error('Family size is missing for idr calculation');
+      }
 
       if (data.repaymentPlan === 'ibr') {
         nextIDRPayment = calculateIBR10MonthlyPayment(
@@ -185,6 +193,7 @@ function App() {
     });
     setRepaymentPlan(data.repaymentPlan);
     setIdrPayment(nextIDRPayment);
+    setCompareToStandard(data.compareToStandard ?? false);
   }, []);
 
   // Called by LoanDetailsForm when user clicks Save.
@@ -235,12 +244,14 @@ function App() {
     loanInputs.termUnit === 'years'
       ? loanInputs.loanTerm * 12
       : loanInputs.loanTerm;
+
   const standardResults = calculateStandardLoanResults(
     loanInputs.principal,
     loanInputs.interestRate,
     termMonths,
     startMonth,
   );
+
   const results: LoanResults = {
     repaymentPlan,
     monthlyPayment: standardResults.monthlyPayment,
@@ -249,6 +260,8 @@ function App() {
     totalCost: standardResults.totalCost,
     amortizationSchedule: standardResults.amortizationSchedule,
     idrPayment,
+    compareToStandard,
+    standardMonthlyPayment: standardResults.monthlyPayment,
   };
 
   return (
@@ -319,13 +332,15 @@ function App() {
               </Box>
 
               <Box sx={{ p: { xs: 3, sm: 4 } }}>
-                <ResultsSummaryStd
-                  monthlyPayment={results.monthlyPayment}
-                  totalPaid={results.totalPaid}
-                  totalInterest={results.totalInterest}
-                  totalCost={results.totalCost}
-                  termMonths={termMonths}
-                />
+                {(results.repaymentPlan === 'standard' || results.compareToStandard) && (
+                  <ResultsSummaryStd
+                    monthlyPayment={results.monthlyPayment}
+                    totalPaid={results.totalPaid}
+                    totalInterest={results.totalInterest}
+                    totalCost={results.totalCost}
+                    termMonths={termMonths}
+                  />
+                )}
 
                 {results.repaymentPlan !== 'standard' && (
                   <ResultsSummaryIDR
