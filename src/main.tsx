@@ -8,6 +8,7 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import theme from './theme';
 import App from './App';
+import { AuthProvider } from './auth/AuthContext';
 import './index.css';
 
 const rootElem = document.getElementById('root');
@@ -17,7 +18,9 @@ if (rootElem) {
     <StrictMode>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </ThemeProvider>
     </StrictMode>,
   );

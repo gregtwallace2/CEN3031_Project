@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -7,24 +7,46 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Button from '@mui/material/Button';
 import CalculateIcon from '@mui/icons-material/Calculate';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 
-interface LoanDetailsFormProps {
-  onCalculate: (data: {
-    principal: number;
-    interestRate: number;
-    loanTerm: number;
-    termUnit: 'months' | 'years';
-    repaymentPlan: 'standard' | 'ibr' | 'icr' | 'paye';
-    income?: number;
-    familySize?: number;
-    compareToStandard?: boolean;
-  }) => void;
+export interface FormValues {
+  principal: number;
+  interestRate: number;
+  loanTerm: number;
+  termUnit: 'months' | 'years';
+  repaymentPlan: 'standard' | 'ibr' | 'icr' | 'paye';
+  income?: number;
+  familySize?: number;
+  compareToStandard?: boolean;
 }
 
-export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
-  const [principal, setPrincipal] = useState('10000');
+interface LoanDetailsFormProps {
+  onCalculate: (data: FormValues) => void;
+  /** Called when the user clicks Save. The current form values are passed in. */
+  onSaveRequest?: (data: FormValues) => void;
+  /** When provided, the form resets to these values (used for scenario loading). */
+  defaultValues?: FormValues;
+  isLoggedIn?: boolean;
+}
+
+function formatPrincipalInput(value: string): string {
+  const digits = value.replace(/[^0-9.]/g, '');
+  const parts = digits.split('.');
+  if (parts[0]) {
+    parts[0] = Number(parts[0]).toLocaleString('en-US');
+  }
+  return parts.length > 1 ? `${parts[0]}.${parts[1]}` : parts[0] || '';
+}
+
+export default function LoanDetailsForm({
+  onCalculate,
+  onSaveRequest,
+  defaultValues,
+  isLoggedIn = false,
+}: LoanDetailsFormProps) {
+  const [principal, setPrincipal] = useState('10,000');
   const [interestRate, setInterestRate] = useState('5');
   const [loanTerm, setLoanTerm] = useState('10');
   const [termUnit, setTermUnit] = useState<'months' | 'years'>('years');
@@ -35,6 +57,38 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
   const [familySize, setFamilySize] = useState('');
   const [compareToStandard, setCompareToStandard] = useState(false);
 
+  const [errors, setErrors] = useState<{
+    principal?: string;
+    interestRate?: string;
+    loanTerm?: string;
+    income?: string;
+    familySize?: string;
+  }>({});
+
+  // Track the last loaded defaultValues token so we don't re-apply on re-renders.
+  const lastLoadedRef = useRef<FormValues | undefined>(undefined);
+
+  useEffect(() => {
+    if (!defaultValues || defaultValues === lastLoadedRef.current) return;
+    lastLoadedRef.current = defaultValues;
+
+    /* eslint-disable react-hooks/set-state-in-effect --
+       Syncing internal form fields with externally-provided default values
+       when a scenario is loaded from outside the component. */
+    setPrincipal(formatPrincipalInput(String(defaultValues.principal)));
+    setInterestRate(String(defaultValues.interestRate));
+    setLoanTerm(String(defaultValues.loanTerm));
+    setTermUnit(defaultValues.termUnit);
+    setRepaymentPlan(defaultValues.repaymentPlan);
+    setIncome(defaultValues.income != null ? String(defaultValues.income) : '');
+    setFamilySize(defaultValues.familySize != null ? String(defaultValues.familySize) : '');
+    setErrors({});
+    /* eslint-enable react-hooks/set-state-in-effect */
+
+    // Trigger calculation automatically when a scenario is loaded.
+    onCalculate(defaultValues);
+  }, [defaultValues, onCalculate]);
+
   const handleTermUnitChange = (
     _: React.MouseEvent<HTMLElement>,
     newUnit: 'months' | 'years' | null,
@@ -43,6 +97,7 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
       setTermUnit(newUnit);
     }
   };
+
   const handleRepaymentPlanChange = (
   _: React.MouseEvent<HTMLElement>,
   newPlan: 'standard' | 'ibr' | 'icr' | 'paye' | null,
@@ -55,15 +110,7 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
   }
 };
 
-  const [errors, setErrors] = useState<{
-    principal?: string;
-    interestRate?: string;
-    loanTerm?: string;
-    income?: string;
-    familySize?: string;
-  }>({});
-
-  const handleCalculate = () => {
+  const buildFormValues = (): FormValues | null => {
     const principalNum = parseFloat(principal.replace(/,/g, ''));
     const rateNum = parseFloat(interestRate);
     const termNum = parseFloat(loanTerm);
@@ -106,36 +153,35 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      return;
+      return null;
     }
 
     setErrors({});
 
-    onCalculate({
+    return {
       principal: principalNum,
       interestRate: rateNum,
       loanTerm: termNum,
       termUnit,
       repaymentPlan,
       income:
-        repaymentPlan !== 'standard' && !isNaN(incomeNum)
-          ? incomeNum
-          : undefined,
+        repaymentPlan !== 'standard' && !isNaN(incomeNum) ? incomeNum : undefined,
       familySize:
         repaymentPlan !== 'standard' && !isNaN(familySizeNum)
           ? familySizeNum
           : undefined,
       compareToStandard,
-    });
+    };
   };
 
-  const formatPrincipalInput = (value: string) => {
-    const digits = value.replace(/[^0-9.]/g, '');
-    const parts = digits.split('.');
-    if (parts[0]) {
-      parts[0] = Number(parts[0]).toLocaleString('en-US');
-    }
-    return parts.length > 1 ? `${parts[0]}.${parts[1]}` : parts[0] || '';
+  const handleCalculate = () => {
+    const values = buildFormValues();
+    if (values) onCalculate(values);
+  };
+
+  const handleSave = () => {
+    const values = buildFormValues();
+    if (values && onSaveRequest) onSaveRequest(values);
   };
 
   const handlePrincipalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -422,49 +468,54 @@ export default function LoanDetailsForm({ onCalculate }: LoanDetailsFormProps) {
       </Box>
     </Box>
   )}
-      {/* Load/Restore Button */}
+      <Box sx={{ display: 'flex', gap: 1.5 }}>
         <Button
-      variant="outlined"
-      size="large"
-      fullWidth
-      sx={{
-        mb: 2,
-        py: 1.5,
-        fontSize: '1rem',
-        fontWeight: 700,
-        borderRadius: '10px',
-        borderColor: '#0021A5',
-        color: '#0021A5',
-        '&:hover': {
-          borderColor: '#001573',
-          backgroundColor: '#EEF2FF',
-        },
-      }}
-    >
-      Load / Restore
-    </Button>
+          variant="contained"
+          size="large"
+          fullWidth
+          onClick={handleCalculate}
+          startIcon={<CalculateIcon />}
+          sx={{
+            py: 1.5,
+            fontSize: '1.05rem',
+            fontWeight: 700,
+            borderRadius: '10px',
+            boxShadow: '0 4px 14px rgba(0, 33, 165, 0.3)',
+            background: 'linear-gradient(135deg, #0021A5 0%, #0033CC 100%)',
+            '&:hover': {
+              boxShadow: '0 6px 20px rgba(0, 33, 165, 0.4)',
+              background: 'linear-gradient(135deg, #001573 0%, #0021A5 100%)',
+            },
+          }}
+        >
+          Calculate
+        </Button>
 
-      <Button
-        variant="contained"
-        size="large"
-        fullWidth
-        onClick={handleCalculate}
-        startIcon={<CalculateIcon />}
-        sx={{
-          py: 1.5,
-          fontSize: '1.05rem',
-          fontWeight: 700,
-          borderRadius: '10px',
-          boxShadow: '0 4px 14px rgba(0, 33, 165, 0.3)',
-          background: 'linear-gradient(135deg, #0021A5 0%, #0033CC 100%)',
-          '&:hover': {
-            boxShadow: '0 6px 20px rgba(0, 33, 165, 0.4)',
-            background: 'linear-gradient(135deg, #001573 0%, #0021A5 100%)',
-          },
-        }}
-      >
-        Calculate
-      </Button>
+        {isLoggedIn && onSaveRequest && (
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={handleSave}
+            startIcon={<BookmarkIcon />}
+            aria-label="Save scenario"
+            sx={{
+              py: 1.5,
+              px: 2.5,
+              fontWeight: 700,
+              borderRadius: '10px',
+              borderColor: '#0021A5',
+              color: '#0021A5',
+              whiteSpace: 'nowrap',
+              '&:hover': {
+                backgroundColor: '#EEF2FF',
+                borderColor: '#001573',
+              },
+            }}
+          >
+            Save
+          </Button>
+        )}
+      </Box>
     </Box>
   );
 }
