@@ -74,7 +74,7 @@ export default function AmortizationTable({
   onStartMonthChange,
   rows,
   startMonth,
-}: AmortizationTableProps) {
+}: Readonly<AmortizationTableProps>) {
   const yearlyGroups = groupRowsByYear(rows);
   const [expandAll, setExpandAll] = useState(false);
   const [expandedYears, setExpandedYears] = useState<number[]>(() => {

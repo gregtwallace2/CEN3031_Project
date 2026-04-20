@@ -24,7 +24,7 @@ export default function ResultsSummary({
   totalInterest,
   totalCost,
   termMonths,
-}: ResultsSummaryProps) {
+}: Readonly<ResultsSummaryProps>) {
   const principalPercent =
     totalCost > 0 ? Math.round((totalPaid / totalCost) * 100) : 0;
   const interestPercent = 100 - principalPercent;

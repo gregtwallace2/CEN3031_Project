@@ -19,7 +19,7 @@ interface LoginPageProps {
 
 type Mode = 'signin' | 'signup';
 
-export default function LoginPage({ onClose }: LoginPageProps) {
+export default function LoginPage({ onClose }: Readonly<LoginPageProps>) {
   const { signInWithPassword, signUpWithPassword, signInWithGoogle } =
     useAuth();
   const [mode, setMode] = useState<Mode>('signin');

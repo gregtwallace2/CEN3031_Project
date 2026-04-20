@@ -74,7 +74,7 @@ function wrapper(client: SupabaseClient) {
 describe('AuthProvider', () => {
   beforeEach(() => {
     // window.location is needed by the OAuth call.
-    Object.defineProperty(window, 'location', {
+    Object.defineProperty(globalThis, 'location', {
       value: { origin: 'http://localhost', pathname: '/' },
       writable: true,
     });

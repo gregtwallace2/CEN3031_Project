@@ -34,7 +34,7 @@ interface AuthProviderProps {
   client?: SupabaseClient;
 }
 
-export function AuthProvider({ children, client }: AuthProviderProps) {
+export function AuthProvider({ children, client }: Readonly<AuthProviderProps>) {
   const supabase = client ?? defaultSupabase;
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -90,7 +90,7 @@ export function AuthProvider({ children, client }: AuthProviderProps) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + window.location.pathname,
+        redirectTo: globalThis.location.origin + globalThis.location.pathname,
       },
     });
     return { error: error ?? null };
