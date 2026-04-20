@@ -4,7 +4,8 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
 import Header from './components/Header';
-import LoanDetailsForm, { type FormValues } from './components/LoanDetailsForm';
+import LoanDetailsForm from './components/LoanDetailsForm';
+import { type FormValues } from './utils/loanFormValidation';
 import ResultsSummaryStd from './components/ResultsSummaryStd';
 import ResultsSummaryIDR from './components/ResultsSummaryIDR';
 import AmortizationTable from './components/AmortizationTable';
@@ -20,11 +21,7 @@ import {
   generateAmortizationSchedule,
   type AmortizationScheduleRow,
 } from './utils/loanCalculations';
-import {
-  fetchScenarios,
-  saveScenario,
-  type Scenario,
-} from './lib/scenarios';
+import { fetchScenarios, saveScenario, type Scenario } from './lib/scenarios';
 
 interface LoanResults {
   repaymentPlan: 'standard' | 'ibr' | 'icr' | 'paye';
@@ -126,9 +123,13 @@ function App() {
   // Scenario state
   const [savedScenarios, setSavedScenarios] = useState<Scenario[]>([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [pendingFormValues, setPendingFormValues] = useState<FormValues | null>(null);
+  const [pendingFormValues, setPendingFormValues] = useState<FormValues | null>(
+    null,
+  );
   // When non-null, the form resets to these values (scenario load)
-  const [formDefaults, setFormDefaults] = useState<FormValues | undefined>(undefined);
+  const [formDefaults, setFormDefaults] = useState<FormValues | undefined>(
+    undefined,
+  );
 
   // Auto-dismiss the login view once the user is authenticated; restore
   // calculator view and clear cached scenarios when the user signs out.
@@ -154,10 +155,10 @@ function App() {
     let nextIDRPayment = 0;
 
     if (data.repaymentPlan !== 'standard') {
-      if (!data.income) {
+      if (typeof data.income === 'undefined') {
         throw new Error('Income is missing for idr calculation');
       }
-      if (!data.familySize) {
+      if (typeof data.familySize === 'undefined') {
         throw new Error('Family size is missing for idr calculation');
       }
 
@@ -299,7 +300,7 @@ function App() {
       )}
 
       {view === 'calculator' && (
-        <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 5 } }}>
+        <Container maxWidth='lg' sx={{ py: { xs: 3, sm: 5 } }}>
           <Paper
             elevation={0}
             sx={{
@@ -332,7 +333,8 @@ function App() {
               </Box>
 
               <Box sx={{ p: { xs: 3, sm: 4 } }}>
-                {(results.repaymentPlan === 'standard' || results.compareToStandard) && (
+                {(results.repaymentPlan === 'standard' ||
+                  results.compareToStandard) && (
                   <ResultsSummaryStd
                     monthlyPayment={results.monthlyPayment}
                     totalPaid={results.totalPaid}

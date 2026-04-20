@@ -40,6 +40,10 @@ function formatCurrency(value: number): string {
   });
 }
 
+// utility func refactored out for readability
+const removeValueFrom = (valArr: number[], removeThisValue: number) => 
+  valArr.filter((currentVal) => currentVal !== removeThisValue);
+
 function groupRowsByYear(rows: AmortizationScheduleRow[]): YearlyScheduleGroup[] {
   const groups = new Map<number, YearlyScheduleGroup>();
 
@@ -93,7 +97,7 @@ export default function AmortizationTable({
             : [...currentYears, year];
         }
 
-        return currentYears.filter((currentYear) => currentYear !== year);
+        return removeValueFrom(currentYears, year);
       });
     };
 

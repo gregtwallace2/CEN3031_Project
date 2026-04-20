@@ -11,16 +11,8 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 
-export interface FormValues {
-  principal: number;
-  interestRate: number;
-  loanTerm: number;
-  termUnit: 'months' | 'years';
-  repaymentPlan: 'standard' | 'ibr' | 'icr' | 'paye';
-  income?: number;
-  familySize?: number;
-  compareToStandard?: boolean;
-}
+import type { FormValues, FormValuesErrors } from '@/utils/loanFormValidation';
+import { validateFormValues } from '@/utils/loanFormValidation';
 
 interface LoanDetailsFormProps {
   onCalculate: (data: FormValues) => void;
@@ -57,13 +49,7 @@ export default function LoanDetailsForm({
   const [familySize, setFamilySize] = useState('');
   const [compareToStandard, setCompareToStandard] = useState(false);
 
-  const [errors, setErrors] = useState<{
-    principal?: string;
-    interestRate?: string;
-    loanTerm?: string;
-    income?: string;
-    familySize?: string;
-  }>({});
+  const [errors, setErrors] = useState<FormValuesErrors>({});
 
   // Track the last loaded defaultValues token so we don't re-apply on re-renders.
   const lastLoadedRef = useRef<FormValues | undefined>(undefined);
@@ -111,60 +97,14 @@ export default function LoanDetailsForm({
 };
 
   const buildFormValues = (): FormValues | null => {
-    const principalNum = Number.parseFloat(principal.replaceAll(/,/g, ''));
+    // build values
+    const principalNum = Number.parseFloat(principal.replaceAll(',', ''));
     const rateNum = Number.parseFloat(interestRate);
     const termNum = Number.parseFloat(loanTerm);
-    const incomeNum = Number.parseFloat(income.replaceAll(/,/g, ''));
+    const incomeNum = Number.parseFloat(income.replaceAll(',', ''));
     const familySizeNum = Number.parseFloat(familySize);
 
-    const newErrors: typeof errors = {};
-
-    // principal
-    if (Number.isNaN(principalNum)) newErrors.principal = 'Principal is required';
-    else if (principalNum === 0)
-      newErrors.principal = 'Principal must be greater than 0';
-    else if (principalNum > 10_000_000_000)
-      newErrors.principal = 'Principal too large';
-
-    // interest rate
-    if (Number.isNaN(rateNum)) newErrors.interestRate = 'Interest rate is required';
-    else if (rateNum > 100)
-      newErrors.interestRate = 'Interest rate too large';
-
-    // loan term
-    let termValidationMonths = termNum;
-    if (termUnit === 'years') termValidationMonths *= 12;
-
-    if (Number.isNaN(termValidationMonths))
-      newErrors.loanTerm = 'Loan term is required';
-    else if (termValidationMonths === 0)
-      newErrors.loanTerm = 'Loan term must be greater than 0';
-    else if (termValidationMonths > 600)
-      newErrors.loanTerm = 'Loan term too large';
-
-    // idr: 
-    if (repaymentPlan !== 'standard') {
-      // idr: income
-      if (Number.isNaN(incomeNum) || incomeNum === 0)
-        newErrors.income = 'Income must be greater than 0';
-      else if (incomeNum > 10_000_000_000)
-        newErrors.income = 'Income too large';
-
-      // idr: family size
-      if (Number.isNaN(familySizeNum) || familySizeNum < 1)
-        newErrors.familySize = 'Family size must be at least 1';
-      else if (familySizeNum > 50)
-        newErrors.familySize = 'Family size too large';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return null;
-    }
-
-    setErrors({});
-
-    return {
+    const values = {
       principal: principalNum,
       interestRate: rateNum,
       loanTerm: termNum,
@@ -178,6 +118,19 @@ export default function LoanDetailsForm({
           : undefined,
       compareToStandard,
     };
+
+    // validate
+    const newErrors = validateFormValues(values);
+
+    // error(s)
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return null;
+    }
+
+    // ok
+    setErrors({});
+    return values;
   };
 
   const handleCalculate = () => {
