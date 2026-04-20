@@ -155,10 +155,10 @@ function App() {
     let nextIDRPayment = 0;
 
     if (data.repaymentPlan !== 'standard') {
-      if (typeof data.income === 'undefined') {
+      if (data.income === undefined) {
         throw new Error('Income is missing for idr calculation');
       }
-      if (typeof data.familySize === 'undefined') {
+      if (data.familySize === undefined) {
         throw new Error('Family size is missing for idr calculation');
       }
 

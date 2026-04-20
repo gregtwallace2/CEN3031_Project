@@ -24,7 +24,7 @@ export interface FormValuesErrors {
 // DONT EXPORT THESE
 
 const validatePrincipal = (principal: number | undefined) => {
-  if (typeof principal === 'undefined' || Number.isNaN(principal)) {
+  if (principal === undefined || Number.isNaN(principal)) {
     return 'Principal is required';
   }
 
@@ -40,7 +40,7 @@ const validatePrincipal = (principal: number | undefined) => {
 };
 
 const validateInterestRate = (interestRate: number | undefined) => {
-  if (typeof interestRate === 'undefined' || Number.isNaN(interestRate)) {
+  if (interestRate === undefined || Number.isNaN(interestRate)) {
     return 'Interest rate is required';
   }
 
@@ -60,8 +60,8 @@ const validateLoanTerm = (
   termUnit: 'months' | 'years' | undefined,
 ) => {
   if (
-    typeof termUnitQuantity === 'undefined' ||
-    typeof termUnit === 'undefined' ||
+    termUnitQuantity === undefined ||
+    termUnit === undefined ||
     Number.isNaN(termUnitQuantity)
   ) {
     return 'Loan term is required';
@@ -82,7 +82,7 @@ const validateLoanTerm = (
 };
 
 const validateIncome = (income: number | undefined) => {
-  if (typeof income === 'undefined' || Number.isNaN(income)) {
+  if (income === undefined || Number.isNaN(income)) {
     return 'Income is required';
   }
 
@@ -98,7 +98,7 @@ const validateIncome = (income: number | undefined) => {
 };
 
 const validateFamilySize = (familySize: number | undefined) => {
-  if (typeof familySize === 'undefined' || Number.isNaN(familySize)) {
+  if (familySize === undefined || Number.isNaN(familySize)) {
     return 'Family size is required';
   }
 
