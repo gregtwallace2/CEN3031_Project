@@ -143,7 +143,7 @@ export const validateFormValues = (
 
   // any errors?
   const errCount = Object.values(newErrors).filter(
-    (val) => typeof val !== 'undefined',
+    (val) => val !== undefined,
   ).length;
 
   if (errCount !== 0) {
