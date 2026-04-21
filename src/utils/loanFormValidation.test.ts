@@ -67,6 +67,34 @@ describe('Loan Form Validation: Interest Rate', () => {
   });
 });
 
+// common term test function
+const testTermUnitCommon = (termUnit: 'months' | 'years') => {
+  it('loan term is missing (' + termUnit + ')', () => {
+    const result = funcsForTests.validateLoanTerm(undefined, termUnit);
+    expect(result).equals('Loan term is required');
+  });
+
+  it('loan term unit is missing (' + termUnit + ')', () => {
+    const result = funcsForTests.validateLoanTerm(40, undefined);
+    expect(result).equals('Loan term is required');
+  });
+
+  it('loan term is an invalid number (' + termUnit + ')', () => {
+    const result = funcsForTests.validateLoanTerm(Math.sqrt(-1), termUnit);
+    expect(result).equals('Loan term is required');
+  });
+
+  it('loan term is 0 (' + termUnit + ')', () => {
+    const result = funcsForTests.validateLoanTerm(0, termUnit);
+    expect(result).equals('Loan term must be greater than 0');
+  });
+
+  it('loan term is negative (' + termUnit + ')', () => {
+    const result = funcsForTests.validateLoanTerm(-1, termUnit);
+    expect(result).equals('Loan term must be greater than 0');
+  });
+}
+
 // term (years)
 describe('Loan Form Validation: Loan Term (in Years)', () => {
   it('loan term is valid (years)', () => {
@@ -74,30 +102,7 @@ describe('Loan Form Validation: Loan Term (in Years)', () => {
     expect(result).toBeUndefined();
   });
 
-  it('loan term is missing (years)', () => {
-    const result = funcsForTests.validateLoanTerm(undefined, 'years');
-    expect(result).equals('Loan term is required');
-  });
-
-  it('loan term unit is missing (years)', () => {
-    const result = funcsForTests.validateLoanTerm(100, undefined);
-    expect(result).equals('Loan term is required');
-  });
-
-  it('loan term is an invalid number (years)', () => {
-    const result = funcsForTests.validateLoanTerm(Math.sqrt(-1), 'years');
-    expect(result).equals('Loan term is required');
-  });
-
-  it('loan term is 0 (years)', () => {
-    const result = funcsForTests.validateLoanTerm(0, 'years');
-    expect(result).equals('Loan term must be greater than 0');
-  });
-
-  it('loan term is negative (years)', () => {
-    const result = funcsForTests.validateLoanTerm(-1, 'years');
-    expect(result).equals('Loan term must be greater than 0');
-  });
+  testTermUnitCommon('years');
 
   it('loan term is too big (years)', () => {
     const result = funcsForTests.validateLoanTerm(51, 'years');
@@ -110,31 +115,6 @@ describe('Loan Form Validation: Loan Term (in Months)', () => {
   it('loan term is valid (months)', () => {
     const result = funcsForTests.validateLoanTerm(500, 'months');
     expect(result).toBeUndefined();
-  });
-
-  it('loan term is missing (months)', () => {
-    const result = funcsForTests.validateLoanTerm(undefined, 'months');
-    expect(result).equals('Loan term is required');
-  });
-
-  it('loan term unit is missing (months)', () => {
-    const result = funcsForTests.validateLoanTerm(500, undefined);
-    expect(result).equals('Loan term is required');
-  });
-
-  it('loan term is an invalid number (months)', () => {
-    const result = funcsForTests.validateLoanTerm(Math.sqrt(-1), 'months');
-    expect(result).equals('Loan term is required');
-  });
-
-  it('loan term is 0 (months)', () => {
-    const result = funcsForTests.validateLoanTerm(0, 'months');
-    expect(result).equals('Loan term must be greater than 0');
-  });
-
-  it('loan term is negative (months)', () => {
-    const result = funcsForTests.validateLoanTerm(-1, 'months');
-    expect(result).equals('Loan term must be greater than 0');
   });
 
   it('loan term is too big (months)', () => {
